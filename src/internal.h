@@ -105,6 +105,13 @@ struct kissat {
   unsigned active;
   unsigned randec;
 
+  // OMEGA: structural parity-gate fingerprint learned while parsing DIMACS.
+  unsigned omega_xor_gates;
+  unsigned omega_clause_arity;
+  int omega_clause[3];
+  unsigned omega_xor_signature[3];
+  unsigned omega_xor_mask;
+
   ints export;
   ints units;
   imports import;
