@@ -3,6 +3,7 @@
 #include "error.h"
 #include "import.h"
 #include "inline.h"
+#include "omega.h"
 #include "inlineframes.h"
 #include "print.h"
 #include "propsearch.h"
@@ -266,6 +267,7 @@ void kissat_print_statistics (kissat *solver) {
 void kissat_add (kissat *solver, int elit) {
   kissat_require_initialized (solver);
   kissat_require (!GET (searches), "incremental solving not supported");
+  kissat_omega_observe_external_literal (solver, elit);
 #if !defined(NDEBUG) || !defined(NPROOFS) || defined(LOGGING)
   const int checking = kissat_checking (solver);
   const bool logging = kissat_logging (solver);
