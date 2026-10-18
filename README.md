@@ -97,6 +97,18 @@ bounded UNKNOWN result with a collision found or an UNSAT proof.
 
 ### SUPREME benchmark: matched decision budgets
 
+**One-command benchmark**, including an exact CNF regeneration and automatic
+builds of both the original and OMEGA versions:
+
+```bash
+bash scripts/run-sha3-supreme.sh 500000
+```
+
+See [the verified SHA3 SUPREME research report](benchmarks/SHA3_SUPREME_REPORT.md)
+for full tables, reproducible SHA-256 and GitHub Actions run artifacts.
+
+
+
 The baseline is a separate binary built from untouched Kissat. OMEGA's
 features remain integrated in the modified binary at all times.
 
