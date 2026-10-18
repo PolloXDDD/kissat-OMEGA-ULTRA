@@ -1,0 +1,41 @@
+name: SHA3 SUPREME exact-input benchmark
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/**'
+      - 'scripts/benchmark-sha3-supreme.py'
+      - 'scripts/generate-sha3-collision.py'
+      - '.github/workflows/sha3-supreme.yml'
+  workflow_dispatch:
+
+jobs:
+  sha3-full:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Regenerate and verify uploaded SHA3 CNF exactly
+        run: python3 scripts/generate-sha3-collision.py
+      - name: Build OMEGA
+        run: |
+          ./configure
+          make -C build -j2
+      - name: Build unmodified Kissat baseline
+        run: |
+          git worktree add --detach baseline 8af8e56f174b778aef3aa45af9f739b2a5f492c2
+          cd baseline
+          ./configure
+          make -C build -j2
+      - name: Equal-budget SHA3 conflict benchmark
+        run: |
+          python3 scripts/benchmark-sha3-supreme.py --decisions 10000 --time 45 --seeds 0
+      - name: Preserve raw logs and result comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sha3-supreme-results
+          path: benchmarks/results/
+          if-no-files-found: warn
