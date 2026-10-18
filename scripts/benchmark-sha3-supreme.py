@@ -50,7 +50,11 @@ def run(binpath,cnf,decisions,seconds,seed,logpath):
         out=(exc.stdout or b"").decode(errors="replace") if isinstance(exc.stdout,bytes) else (exc.stdout or "")
         exitcode=124
     logpath.write_text("$ "+" ".join(cmd)+"\n"+out,encoding="utf8")
-    return dict(result={10:"SAT",20:"UNSAT",0:"UNKNOWN",124:"EXTERNAL_TIMEOUT"}.get(exitcode,"ERROR"),
+    xor_match=re.search(r"OMEGA XOR-SENSE:\s*([\d,]+) verified XOR gates",out)
+    xor_groups=(int(xor_match.group(1).replace(",",""))
+                if xor_match else None)
+    return dict(xor_groups=xor_groups,
+                result={10:"SAT",20:"UNSAT",0:"UNKNOWN",124:"EXTERNAL_TIMEOUT"}.get(exitcode,"ERROR"),
                 exit_code=exitcode,seconds=round(elapsed,4),
                 decisions=parse_metric(out,"decisions"),conflicts=parse_metric(out,"conflicts"),
                 propagations=parse_metric(out,"propagations"),
@@ -88,6 +92,10 @@ def main():
             row={"variant":name,"seed":seed,"cnf_sha256":sha,"decision_budget":a.decisions,
                  "time_budget_s":a.time,**values,"log":str(logfile)}
             rows.append(row)
+            if name=="kissat_omega" and sha==SHA and values["xor_groups"]!=230464:
+                raise SystemExit(
+                    f"OMEGA XOR-SENSE regression: expected 230464 detected gates, "
+                    f"got {values['xor_groups']}")
             print(f"{name:18} seed={seed} result={values['result']:8} "
                   f"decisions={values['decisions']} conflicts={values['conflicts']} "
                   f"elapsed={values['seconds']:.2f}s",flush=True)
