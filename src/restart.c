@@ -3,6 +3,7 @@
 #include "bump.h"
 #include "decide.h"
 #include "internal.h"
+#include "omega.h"
 #include "kimits.h"
 #include "logging.h"
 #include "print.h"
@@ -23,7 +24,10 @@ bool kissat_restarting (kissat *solver) {
     return kissat_reluctant_triggered (&solver->reluctant);
   const double fast = AVERAGE (fast_glue);
   const double slow = AVERAGE (slow_glue);
-  const double margin = (100.0 + GET_OPTION (restartmargin)) / 100.0;
+  // Automatically tighten glue-triggered restarts in verified XOR networks.
+  const int margin_option = kissat_omega_xor_dominated (solver)
+                                ? 0 : GET_OPTION (restartmargin);
+  const double margin = (100.0 + margin_option) / 100.0;
   const double limit = margin * slow;
   kissat_extremely_verbose (solver,
                             "restart glue limit %g = "
