@@ -9,7 +9,8 @@ import re
 import subprocess
 import time
 CNF=pathlib.Path("benchmarks/sha3_collision_5.cnf")
-BIN=pathlib.Path("build/kissat").resolve()
+# The ablation matrix profiles untouched Kissat options, never disables OMEGA.
+BIN=pathlib.Path("baseline/build/kissat").resolve()
 SEEDS=(0,1,2)
 BUDGETS=(10000,50000)
 SETS=[
