@@ -47,63 +47,75 @@ University of Helsinki 2024
 
 See [NEWS.md](NEWS.md) for feature updates.
 
-## OMEGA V2 experimental extension
+## Kissat OMEGA V3 — fully integrated XOR regime
 
-This fork retains all native Kissat functionality, including CDCL, learned
-clauses, branching heuristics, restarts, propagation, simplification, proof
-handling and existing solver configurations. It **adds** a bounded binary
-implication-graph phase heuristic in `src/omega.c`. OMEGA is not a separate
-solver and does not replace Kissat.
+This is **the original Kissat CDCL solver plus mandatory extra algorithms**.
+Native Kissat's existing propagation, branching, learned clauses, restarts,
+proof support and simplifications remain intact. The OMEGA extensions are
+enabled automatically in every build; there is no `--omega` switch.
 
-**How it works.** Given an unassigned decision variable, the module traces
-both polarities over watched binary clauses for up to two implication hops.
-Direct implications are weighted more than second-hop implications. When a
-contradiction is found for exactly one candidate polarity, the other is
-preferred; otherwise OMEGA recommends the polarity with sufficiently greater
-local implication pressure. If the scores are close, the ordinary Kissat
-target/saved/initial phase machinery is used. The heuristic observes *current*
-binary clauses, including learned clauses, but never mutates assignments or
-proof state. Variable selection is still handled by native Kissat.
+### New built-in algorithms
 
-### Options
+**OMEGA XOR-SENSE:** recognizes full four-clause ternary XOR encodings during
+original DIMACS ingestion. A complete 0x96/0x69 sign mask is required; arbitrary
+triples of variables are never treated as parity gates.
 
-| Option | Default | Description |
-|---|---:|---|
-| `--omega=0/1` | 1 | Disable/enable OMEGA (0 restores original phase logic) |
-| `--omegabudget=N` | 64 | Maximum watch entries inspected **per polarity** |
-| `--omegadepth=1/2` | 2 | Implication graph traversal depth |
-| `--omegaevery=N` | 8 | Run expensive tracing only once per N decisions |
-| `--omegagap=N` | 3 | Minimum score difference to use recommendation |
-| `--omegaminwatch=N` | 6 | Minimum local watched entries before tracing |
-| `--omegawidth=N` | 16 | Maximum queued implied literals per polarity (1–64) |
+**OMEGA automatic XOR regime:** when >=8192 verified XOR gates have been
+detected, Kissat automatically uses a zero-margin glue-responsive restart
+threshold **and** full nonchronological backjumping. They act together because
+empirical tests found the restart policy by itself could increase conflicts.
+For other formulas, Kissat retains its native restart/backjump policies.
 
-The default selective schedule protects throughput on dense or difficult CNFs.
-Use `--omegaevery=1 --omegaminwatch=0` for the original
-always-on V2 lookahead or vary the depth and budget experimentally.
+**OMEGA bounded binary lookahead:** the original V2 module remains integrated
+and active by default. It estimates a small two-hop binary implication
+neighborhood for decision phases, limited to 64 watch visits per polarity
+and sampled every eight decisions. Inconclusive proposals defer to Kissat.
 
-The existing target-phase preference keeps precedence. OMEGA acts before
-ordinary saved phase selection when no target preference was chosen.
+These changes are **heuristic guidance**, not additional unproven inference
+rules: all SAT/UNSAT decisions still come from the original sound CDCL core.
 
-### Reproducible benchmark
+### Build and solve the exact uploaded SHA-3 collision problem
 
-```sh
-./configure
-make -C build -j2
-# Unmodified behavior for comparison:
-./build/kissat --omega=0 test/cnf/add16.cnf
-# Extended algorithm:
-./build/kissat --omega=1 test/cnf/add16.cnf
-# Test every repository instance against both modes:
-python3 scripts/benchmark-omega.py --timeout 10 --csv omega-benchmark.csv
+```bash
+./configure && make -C build -j2
+python3 scripts/generate-sha3-collision.py
+./build/kissat benchmarks/sha3_collision_5.cnf
 ```
 
-The A/B script records SAT/UNSAT agreement, per-instance wall clock time,
-speedup ratios, and verifies emitted SAT witnesses when available. GitHub
-Actions runs a selected cross-section of this repository's `test/cnf`
-instances, plus the original `tissat` regression suite. The script exits
-nonzero on disagreements or invalid models.
+The deterministic generator recreates the supplied
+`sha3_collision (5).cnf` **byte-for-byte** (25,969,569 bytes):
 
-**Research status:** OMEGA V2 is an experimental heuristic inspired by local
-implication-graph and structural SAT analysis. It is not a proof of P=NP,
-not a worst-case complexity improvement, and not guaranteed to outperform
-Kissat on every CNF. Compare both modes before drawing performance claims.
+```
+SHA256 249ad83e8f3198d1dcc580cfaec023c5078ba24378fe7337c798158b338bcead
+variables 310636; clauses 1156185; detected XOR quartets 230464
+```
+
+The CNF models two 64-bit messages through complete **Keccak-f[1600],
+24 rounds**, equates their 256-bit digests and requires distinct inputs.
+It is a very difficult cryptographic SAT instance. Do not confuse a
+bounded UNKNOWN result with a collision found or an UNSAT proof.
+
+### SUPREME benchmark: matched decision budgets
+
+The baseline is a separate binary built from untouched Kissat. OMEGA's
+features remain integrated in the modified binary at all times.
+
+```bash
+git worktree add --detach baseline 8af8e56f174b778aef3aa45af9f739b2a5f492c2
+(cd baseline && ./configure && make -C build -j2)
+python3 scripts/benchmark-sha3-supreme.py --decisions 50000 --seeds 0,1,2
+python3 scripts/benchmark-omega.py --limit 50
+```
+
+Both GitHub Actions workflows automatically compile, test and benchmark the
+solvers. SHA3 SUPREME writes full raw logs, CSV and Markdown results as
+downloadable Actions artifacts. The benchmark reports conflicts after an
+**equal number of decisions**, plus wall time, propagations and solution status.
+A lower conflict count is only a trajectory metric: it is not by itself a
+guarantee of better runtime or improved asymptotic complexity.
+
+Before native integration, an ablation of the combined XOR regime against
+stock Kissat achieved **216 → 74 conflicts after 10,000 decisions** and
+**307 → 258 after 50,000 decisions**, across seeds 0, 1 and 2. These
+numbers describe exploratory settings; refer to the most recent GitHub
+Actions result for confirmation on the fully integrated executable.
