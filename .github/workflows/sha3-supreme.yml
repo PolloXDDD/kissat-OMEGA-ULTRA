@@ -38,7 +38,10 @@ jobs:
           python3 scripts/benchmark-sha3-supreme.py --decisions 50000 --time 45 --seeds 0,1,2 --out benchmarks/results/50k
       - name: SHA3 150000-decision deep benchmark
         run: |
-          python3 scripts/benchmark-sha3-supreme.py --decisions 150000 --time 60 --seeds 0 --out benchmarks/results/150k
+          python3 scripts/benchmark-sha3-supreme.py --decisions 150000 --time 60 --seeds 0,1,2 --out benchmarks/results/150k
+      - name: SHA3 500000-decision deep benchmark
+        run: |
+          python3 scripts/benchmark-sha3-supreme.py --decisions 500000 --time 75 --seeds 0 --out benchmarks/results/500k
       - name: Preserve raw logs and result comparison
         if: always()
         uses: actions/upload-artifact@v4
