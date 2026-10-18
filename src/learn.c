@@ -1,6 +1,7 @@
 #include "learn.h"
 #include "backtrack.h"
 #include "inline.h"
+#include "omega.h"
 #include "reluctant.h"
 
 #include <inttypes.h>
@@ -9,6 +10,10 @@ static unsigned backjump_limit (struct kissat *solver) {
 #ifdef NOPTIONS
   (void) solver;
 #endif
+  // Coupled with zero-margin restarts, use full nonchronological CDCL
+  // backjumping automatically for large verified XOR circuits.
+  if (kissat_omega_xor_dominated (solver))
+    return UINT_MAX;
   return GET_OPTION (chrono) ? (unsigned) GET_OPTION (chronolevels)
                              : UINT_MAX;
 }
