@@ -13,7 +13,7 @@ on:
 jobs:
   sha3-full:
     runs-on: ubuntu-latest
-    timeout-minutes: 9
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,11 +30,15 @@ jobs:
           cd baseline
           ./configure
           make -C build -j2
-      - name: Research ablation of phase and decision heuristics
-        run: python3 scripts/sha3-ablation.py
-      - name: Equal-budget SHA3 conflict benchmark
+      - name: SHA3 10000-decision three-seed benchmark
         run: |
-          python3 scripts/benchmark-sha3-supreme.py --decisions 10000 --time 45 --seeds 0
+          python3 scripts/benchmark-sha3-supreme.py --decisions 10000 --time 45 --seeds 0,1,2 --out benchmarks/results/10k
+      - name: SHA3 50000-decision three-seed benchmark
+        run: |
+          python3 scripts/benchmark-sha3-supreme.py --decisions 50000 --time 45 --seeds 0,1,2 --out benchmarks/results/50k
+      - name: SHA3 150000-decision deep benchmark
+        run: |
+          python3 scripts/benchmark-sha3-supreme.py --decisions 150000 --time 60 --seeds 0 --out benchmarks/results/150k
       - name: Preserve raw logs and result comparison
         if: always()
         uses: actions/upload-artifact@v4
