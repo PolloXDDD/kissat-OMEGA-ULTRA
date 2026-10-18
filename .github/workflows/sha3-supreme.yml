@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/**'
       - 'scripts/benchmark-sha3-supreme.py'
+      - 'scripts/sha3-ablation.py'
       - 'scripts/generate-sha3-collision.py'
       - '.github/workflows/sha3-supreme.yml'
   workflow_dispatch:
@@ -29,6 +30,8 @@ jobs:
           cd baseline
           ./configure
           make -C build -j2
+      - name: Research ablation of phase and decision heuristics
+        run: python3 scripts/sha3-ablation.py
       - name: Equal-budget SHA3 conflict benchmark
         run: |
           python3 scripts/benchmark-sha3-supreme.py --decisions 10000 --time 45 --seeds 0
