@@ -51,7 +51,9 @@ def run(label,opts,seed):
              decisions=metric(out,"decisions"),conflicts=metric(out,"conflicts"),
              propagations=metric(out,"propagations"),
              restarts=metric(out,"restarts"))
-    print(f"{label:23} conflicts={row['conflicts']:6} decisions={row['decisions']:6} time={row['seconds']:.3f}s",flush=True)
+    print(f"{label:23} rc={row['exit_code']} conflicts={row['conflicts']} decisions={row['decisions']} time={row['seconds']:.3f}s",flush=True)
+    if row["conflicts"] is None or row["decisions"] is None:
+        print("MISSING METRICS / diagnostic stdout tail:", repr(out[-1200:]),flush=True)
     return row
 rows=[run(name,args,seed) for seed in SEEDS for name,args in SETS]
 path=pathlib.Path("benchmarks/results/sha3-ablation.csv")
