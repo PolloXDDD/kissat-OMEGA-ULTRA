@@ -94,10 +94,20 @@ int kissat_omega_decide_phase (kissat *solver, unsigned idx) {
   assert (VALID_INTERNAL_INDEX (idx));
   assert (!VALUE (LIT (idx)));
 
+  // Selective probing avoids repeated two-hop graph walks when there
+  // is no sufficiently connected local structure to investigate.
+  const unsigned every = (unsigned) GET_OPTION (omegaevery);
+  if (every > 1 && solver->statistics.decisions % every)
+    return 0;
   const unsigned positive_lit = LIT (idx);
+  const unsigned negative_lit = NOT (positive_lit);
+  const size_t incident = SIZE_WATCHES (WATCHES (positive_lit)) +
+                          SIZE_WATCHES (WATCHES (negative_lit));
+  if (incident < (size_t) GET_OPTION (omegaminwatch))
+    return 0;
   const omega_pressure positive = trace_implications (solver, positive_lit);
   const omega_pressure negative =
-      trace_implications (solver, NOT (positive_lit));
+      trace_implications (solver, negative_lit);
 
   // If just one sampled implication graph contains a contradiction,
   // favor the other polarity. No unit clause is silently inferred.

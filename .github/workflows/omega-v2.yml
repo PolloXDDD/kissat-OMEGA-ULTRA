@@ -24,10 +24,19 @@ jobs:
             --timeout 15 \
             --cases "add4.cnf,add8.cnf,add16.cnf,add32.cnf,and1.cnf,and2.cnf,and3.cnf,bin1.cnf,bin2.cnf,bin3.cnf,congr1.cnf,diamond1.cnf,diamond2.cnf,eq1.cnf,eq2.cnf,factor1.cnf,factor2.cnf,full3.cnf,miter1.cnf,ph4.cnf,ph5.cnf,ph6.cnf,prime25.cnf,prime49.cnf,prime121.cnf,probe1.cnf,sqrt10201.cnf,strash1.cnf,tph6.cnf,xor0.cnf,xor1.cnf,xor2.cnf,xor3.cnf" \
             --csv omega-benchmark.csv
+      - name: OMEGA nonselective ablation on tph6
+        run: |
+          python3 scripts/benchmark-omega.py \
+            --timeout 15 \
+            --cases tph6.cnf \
+            --omega-args="--omegaevery=1 --omegaminwatch=0 --omegabudget=96" \
+            --csv omega-nonselective.csv
       - name: Upload A/B results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: omega-benchmark
-          path: omega-benchmark.csv
+          path: |
+            omega-benchmark.csv
+            omega-nonselective.csv
           if-no-files-found: ignore

@@ -9,6 +9,7 @@ that OMEGA is always faster.
 import argparse
 import csv
 import pathlib
+import shlex
 import subprocess
 import time
 
@@ -55,11 +56,11 @@ def verify_witness(output, path):
     return "verified"
 
 
-def run_solver(binary, path, enabled, timeout):
+def run_solver(binary, path, enabled, timeout, extra_args=()):
     started = time.perf_counter()
     try:
         proc = subprocess.run(
-            [str(binary), "--omega=" + str(enabled), str(path)],
+            [str(binary), "--omega=" + str(enabled), *extra_args, str(path)],
             text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             timeout=timeout,
         )
@@ -84,6 +85,7 @@ def main():
     parser.add_argument("--cases", default="", help="comma-separated CNF basenames")
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--csv", default="omega-benchmark.csv")
+    parser.add_argument("--omega-args", default="", help="additional options for OMEGA mode, e.g. --omegadepth=1")
     args = parser.parse_args()
     binary = pathlib.Path(args.binary).resolve()
     tests = pathlib.Path(args.dir)
@@ -97,11 +99,12 @@ def main():
         parser.error(f"Missing solver: {binary}; first run ./configure && make -C build")
     rows = []
     problems = 0
+    extra_args = shlex.split(args.omega_args)
     for path in cnfs:
         if not path.is_file():
             raise FileNotFoundError(path)
         base = run_solver(binary, path, 0, args.timeout)
-        omega = run_solver(binary, path, 1, args.timeout)
+        omega = run_solver(binary, path, 1, args.timeout, extra_args)
         consistent = (base[0] == omega[0] and base[0] in ("SAT", "UNSAT"))
         valid = base[2] != "INVALID WITNESS" and omega[2] != "INVALID WITNESS"
         if not consistent or not valid:

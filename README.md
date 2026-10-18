@@ -70,10 +70,16 @@ proof state. Variable selection is still handled by native Kissat.
 | Option | Default | Description |
 |---|---:|---|
 | `--omega=0/1` | 1 | Disable/enable OMEGA (0 restores original phase logic) |
-| `--omegabudget=N` | 96 | Maximum watch entries inspected **per polarity** |
+| `--omegabudget=N` | 64 | Maximum watch entries inspected **per polarity** |
 | `--omegadepth=1/2` | 2 | Implication graph traversal depth |
+| `--omegaevery=N` | 8 | Run expensive tracing only once per N decisions |
 | `--omegagap=N` | 3 | Minimum score difference to use recommendation |
+| `--omegaminwatch=N` | 6 | Minimum local watched entries before tracing |
 | `--omegawidth=N` | 16 | Maximum queued implied literals per polarity (1–64) |
+
+The default selective schedule protects throughput on dense or difficult CNFs.
+Use `--omegaevery=1 --omegaminwatch=0` for the original
+always-on V2 lookahead or vary the depth and budget experimentally.
 
 The existing target-phase preference keeps precedence. OMEGA acts before
 ordinary saved phase selection when no target preference was chosen.
