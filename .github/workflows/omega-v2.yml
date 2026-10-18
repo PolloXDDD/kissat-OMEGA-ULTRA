@@ -1,0 +1,33 @@
+name: Kissat OMEGA V2 regression and benchmark
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Kissat V2
+        run: |
+          ./configure
+          make -C build -j2
+      - name: Solver internal regression suite
+        run: make -C build test
+      - name: OMEGA A/B benchmark on repository instances
+        run: |
+          python3 scripts/benchmark-omega.py \
+            --timeout 15 \
+            --cases "add4.cnf,add8.cnf,add16.cnf,add32.cnf,and1.cnf,and2.cnf,and3.cnf,bin1.cnf,bin2.cnf,bin3.cnf,congr1.cnf,diamond1.cnf,diamond2.cnf,eq1.cnf,eq2.cnf,factor1.cnf,factor2.cnf,full3.cnf,miter1.cnf,ph4.cnf,ph5.cnf,ph6.cnf,prime25.cnf,prime49.cnf,prime121.cnf,probe1.cnf,sqrt10201.cnf,strash1.cnf,tph6.cnf,xor0.cnf,xor1.cnf,xor2.cnf,xor3.cnf" \
+            --csv omega-benchmark.csv
+      - name: Upload A/B results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: omega-benchmark
+          path: omega-benchmark.csv
+          if-no-files-found: ignore

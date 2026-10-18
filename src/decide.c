@@ -1,4 +1,5 @@
 #include "decide.h"
+#include "omega.h"
 #include "inlineframes.h"
 #include "inlineheap.h"
 #include "inlinequeue.h"
@@ -190,6 +191,11 @@ int kissat_decide_phase (kissat *solver, unsigned idx) {
     LOG ("%s uses target decision phase %d", LOGVAR (idx), (int) res);
     INC (target_decisions);
   }
+
+  // OMEGA augments Kissat's phase selection without altering CDCL,
+  // learnt clauses, proof logging, variable ordering, or propagation.
+  if (!res)
+    res = kissat_omega_decide_phase (solver, idx);
 
   if (!res && saved && (res = *saved)) {
     LOG ("%s uses saved decision phase %d", LOGVAR (idx), (int) res);

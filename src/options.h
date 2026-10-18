@@ -83,6 +83,11 @@
   OPTION (minimizeticks, 1, 0, 1, "count ticks in minimize and shrink") \
   OPTION (modeinit, 1e3, 10, 1e8, "initial focused conflicts limit") \
   OPTION (modeint, 1e3, 10, 1e8, "focused conflicts interval") \
+  OPTION (omega, 1, 0, 1, "OMEGA bounded binary-implication phase guidance") \
+  OPTION (omegabudget, 96, 0, 4096, "OMEGA maximum watched entries per polarity") \
+  OPTION (omegadepth, 2, 1, 2, "OMEGA binary implication depth") \
+  OPTION (omegagap, 3, 0, 256, "OMEGA minimum phase pressure difference") \
+  OPTION (omegawidth, 16, 1, 64, "OMEGA maximum implied literals per polarity") \
   OPTION (otfs, 1, 0, 1, "on-the-fly strengthening") \
   OPTION (phase, 1, 0, 1, "initial decision phase") \
   OPTION (phasesaving, 1, 0, 1, "enable phase saving") \
