@@ -38,7 +38,7 @@ SETS=[
  ("congruence_xor_only",["--congruencexors=1","--congruenceands=0","--congruenceites=0"]),
 ]
 def metric(text,name):
-    m=re.findall(r"(?m)^c\s+([\d,]+)\s+"+name+r"(?:\s|$)",text)
+    m=re.findall(r"(?m)^c\s+"+re.escape(name)+r":\s*([\d,]+)(?:\s|$)",text)
     return int(m[-1].replace(",","")) if m else None
 def run(label,opts,seed):
     cmd=[str(BIN),"--seed="+str(seed),"--decisions=10000","--time=30","-s",*opts,str(CNF)]
