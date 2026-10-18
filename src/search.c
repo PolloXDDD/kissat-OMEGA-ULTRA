@@ -8,6 +8,7 @@
 #include "internal.h"
 #include "logging.h"
 #include "lucky.h"
+#include "omega.h"
 #include "preprocess.h"
 #include "print.h"
 #include "probe.h"
@@ -177,6 +178,10 @@ static bool searching (kissat *solver) {
 }
 
 int kissat_search (kissat *solver) {
+  if (kissat_omega_xor_dominated (solver))
+    kissat_message (solver,
+      "OMEGA XOR-SENSE: %u verified XOR gates; native regime active",
+      solver->omega_xor_gates);
   REPORT (0, '*');
   int res = 0;
   if (solver->inconsistent)
